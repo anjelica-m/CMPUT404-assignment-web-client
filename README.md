@@ -18,3 +18,8 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+
+References used:
+
+https://docs.python.org/3/library/urllib.parse.html#module-urllib.parse
+https://betterprogramming.pub/the-anatomy-of-an-http-request-728a469ecba9
