@@ -46,6 +46,7 @@ class HTTPClient(object):
         two newline characters, as demonstrated by the professor in eClass discussion forums (and notes).
         https://eclass.srv.ualberta.ca/mod/forum/discuss.php?d=2340554
         '''
+        #print("DATA IN CODE:", data)
         split_data = data.split("\n\n")
         #print("Data:", data)
 
@@ -53,6 +54,7 @@ class HTTPClient(object):
 
         headers_each = headers_all.split("\n")
         status = headers_each[0]
+        #print("STATUS:", status)
         status_code = int(status.split(" ")[1]) # split into ["HTTP/1.1", code #, response]
 
 
@@ -66,7 +68,7 @@ class HTTPClient(object):
         '''
         header_content = {}
 
-        split_data = data.split("\n\n")
+        split_data = data.split("\r\n\r\n")
 
         headers_all = split_data[0]
         headers = headers_all.split("\n")
@@ -74,6 +76,8 @@ class HTTPClient(object):
         for each in headers:
             value = each.split(": ") # split between headers and the data, this should allow 'date' to be store properly
             header_content[each] = value
+        
+        #print("header content:", header_content)
 
         return header_content
 
@@ -84,8 +88,8 @@ class HTTPClient(object):
         https://eclass.srv.ualberta.ca/mod/forum/discuss.php?d=2340554
         '''
     
-        split_data = data.split("\n\n")
-
+        split_data = data.split("\r\n\r\n")
+        #print("BODY SPLIT DATA:", split_data)
         if len(split_data) > 1:
             return split_data[1]
         else:
@@ -110,26 +114,65 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        code = 500
-        body = ""
-        print(self.get_code)
-        parse_url = urllib.parse.urlparse(url)
-        
-        return HTTPResponse(code, body)
+        print("\n----GET Args----\n", args)
+        '''
+        METHOD path HTTP-version
+        Host
+        Accept?
+        Accept-language?
+        Connection
+        '''
+        #code = 500
+        #body = ""
+        #print(self.get_code)
+        parsed_url = urllib.parse.urlparse(url)
+        #print("Parse URL:", parsed_url)
+        url_port = parsed_url.port
+        host = parsed_url.hostname
+        if url_port == None: # If no assigned port, assign 80 standard.
+            url_port = 80 
+
+        url_path = parsed_url.path
+        if url_path == '':
+            url_path = '/'
+
+        self.connect(host, url_port)
+        # GET request will have no 'body'
+        # Accept: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8
+        send_payload = "GET "+str(url_path)+" HTTP/1.1\r\nUser-Agent: "+ "\r\nHost: "+ str(host) +"\r\nAccept: */*"+ "\r\nConnection: Close\r\n\r\n"
+        print("SEND GET:", send_payload)
+        self.sendall(send_payload)
+        response = str(self.recvall(self.socket))
+        self.close()
+
+        body_content = self.get_body(response)
+        response_code = self.get_code(response)
+
+        #print("GET BODY RESP:",body_content)
+        #print(response_code)
+        #print("RESPONSE", body_content, response_code)
+        return HTTPResponse(response_code, body_content)
 
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+        '''
+        https://docs.python.org/3/library/urllib.parse.html#module-urllib.parse
+        Example args: {'a': 'aaaaaaaaaaaaa', 'b': 'bbbbbbbbbbbbbbbbbbbbbb', 'c': 'c', 'd': '012345\r67890\n2321321\n\r'}
+        -> since format of a dictionary, need to use urlencode!
+        '''
 
-        parse_url = urllib.parse.urlparse(url)
+        #print("\n----POST Args----\n", args)
+        #code = 500
+        #body = ""
 
-
-        return HTTPResponse(code, body)
+        
+        return HTTPResponse(post_code, post_body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
+            
             return self.POST( url, args )
         else:
+            
             return self.GET( url, args )
     
 if __name__ == "__main__":
@@ -139,6 +182,8 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
+        
         print(client.command( sys.argv[2], sys.argv[1] ))
     else:
+        
         print(client.command( sys.argv[1] ))
