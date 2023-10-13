@@ -20,6 +20,12 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 
 References used:
-
-https://docs.python.org/3/library/urllib.parse.html#module-urllib.parse
-https://betterprogramming.pub/the-anatomy-of-an-http-request-728a469ecba9
+1) https://docs.python.org/3/library/socket.html
+2) https://docs.python.org/3/library/urllib.parse.html#module-urllib.parse
+3) https://betterprogramming.pub/the-anatomy-of-an-http-request-728a469ecba9
+4) https://stackoverflow.com/questions/5551683/what-does-line-endings-must-be-a-carriage-return-line-feed-crlf-pair-mean
+    Author of Answer: Ernest Friedman-Hill https://stackoverflow.com/users/659804/ernest-friedman-hill
+5) https://stackoverflow.com/questions/46120904/http-get-returns-lines-ending-with-r-n-r-n-not-r-n
+    Author of Answer: Martijn Pieters https://stackoverflow.com/users/100297/martijn-pieters
+6) https://stackoverflow.com/questions/6324167/do-browsers-send-r-n-or-n-or-does-it-depend-on-the-browser
+    Author of Answer: Ted Hopp https://stackoverflow.com/users/535871/ted-hopp

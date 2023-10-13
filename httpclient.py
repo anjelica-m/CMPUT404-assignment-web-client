@@ -24,6 +24,8 @@ import re
 # you may use urllib to encode data appropriately
 import urllib.parse
 
+RN = '\r\n'
+
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
 
@@ -63,15 +65,15 @@ class HTTPClient(object):
     def get_headers(self,data):
         '''
         data - composed of headers and body. body is separated from headers by
-        two newline characters, as demonstrated by the professor in eClass discussion forums (and notes).
+        two newline characters and two \r (moves cursor back to beginning of the line), as demonstrated by the professor in eClass discussion forums (and notes).
         https://eclass.srv.ualberta.ca/mod/forum/discuss.php?d=2340554
         '''
-        header_content = {}
+        header_content = {} # Dictionary to store Header : Header-Content pairs.
 
-        split_data = data.split("\r\n\r\n")
+        split_data = data.split(RN+RN)
 
-        headers_all = split_data[0]
-        headers = headers_all.split("\n")
+        headers_all = split_data[0] # All headers in one block.
+        headers = headers_all.split(RN) # all headers separated by \r\n character.
 
         for each in headers:
             value = each.split(": ") # split between headers and the data, this should allow 'date' to be store properly
@@ -84,18 +86,21 @@ class HTTPClient(object):
     def get_body(self, data):
         '''
         data - composed of headers and body. body is separated from headers by
-        two newline characters, as demonstrated by the professor in eClass discussion forums (and notes).
+        two newline characters and two \r (moves cursor back to beginning of the line), as demonstrated by the professor in eClass discussion forums (and notes).
         https://eclass.srv.ualberta.ca/mod/forum/discuss.php?d=2340554
+
+        See reference 6).
         '''
     
-        split_data = data.split("\r\n\r\n")
-        #print("BODY SPLIT DATA:", split_data)
+        split_data = data.split(RN+RN)
+
         if len(split_data) > 1:
             return split_data[1]
         else:
             return None
     
     def sendall(self, data):
+        # Completed for us.
         self.socket.sendall(data.encode('utf-8'))
         
     def close(self):
@@ -103,6 +108,7 @@ class HTTPClient(object):
 
     # read everything from the socket
     def recvall(self, sock):
+        # Completed for us.
         buffer = bytearray()
         done = False
         while not done:
@@ -114,61 +120,53 @@ class HTTPClient(object):
         return buffer.decode('utf-8')
 
     def GET(self, url, args=None):
-        print("\n----GET Args----\n", args)
+        #print("\n----GET Args----\n", args)
         '''
+        Format of the payload that needs to be sent:
         METHOD path HTTP-version
         Host
         Accept?
         Accept-language?
         Connection
         '''
-        #code = 500
-        #body = ""
-        #print(self.get_code)
+        
         parsed_url = urllib.parse.urlparse(url)
-        #print("Parse URL:", parsed_url)
         url_port = parsed_url.port
         host = parsed_url.hostname
-        if url_port == None: # If no assigned port, assign 80 standard.
+        if url_port == None: # If no assigned port, assign 80 standard HTTP.
             url_port = 80 
 
         url_path = parsed_url.path
+        # print("PATH", url_path), some paths are simply '', need to set to '/'. Like in Assignment1.
         if url_path == '':
-            url_path = '/'
+            url_path = url_path + '/'
+
 
         self.connect(host, url_port)
         # GET request will have no 'body'
-        # Accept: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8
-        send_payload = "GET "+str(url_path)+" HTTP/1.1\r\nUser-Agent: "+ "\r\nHost: "+ str(host) +"\r\nAccept: */*"+ "\r\nConnection: Close\r\n\r\n"
-        print("SEND GET:", send_payload)
-        self.sendall(send_payload)
-        response = str(self.recvall(self.socket))
-        self.close()
+        accept = 'text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8' # From mdn web docs
+        send_payload = "GET "+str(url_path)+" HTTP/1.1" +RN+ "User-Agent: "+RN+ "Host: "+ str(host) +RN+"Accept: " + accept +RN+ "Connection: Close"+RN+RN
+        
+        self.sendall(send_payload) # Send client request.
+        response = str(self.recvall(self.socket)) # Receive the response form the server.
+        self.close() # Close the connection.
 
         body_content = self.get_body(response)
         response_code = self.get_code(response)
 
-        #print("GET BODY RESP:",body_content)
-        #print(response_code)
-        #print("RESPONSE", body_content, response_code)
         return HTTPResponse(response_code, body_content)
 
     def POST(self, url, args=None):
+        #print("\n----POST Args----\n", args)
         '''
         https://docs.python.org/3/library/urllib.parse.html#module-urllib.parse
-        Example args: {'a': 'aaaaaaaaaaaaa', 'b': 'bbbbbbbbbbbbbbbbbbbbbb', 'c': 'c', 'd': '012345\r67890\n2321321\n\r'}
+        Example args printout: {'a': 'aaaaaaaaaaaaa', 'b': 'bbbbbbbbbbbbbbbbbbbbbb', 'c': 'c', 'd': '012345\r67890\n2321321\n\r'}
         -> since format of a dictionary, need to use urlencode!
         '''
 
-
-        #print("\n----POST Args----\n", args)
-        #code = 500
-        #body = ""
-
         parsed_url = urllib.parse.urlparse(url)
-        #print("Parse URL:", parsed_url)
-        #print(parsed_url.port)
         if args is None:
+            # No information is passed to the function, set these parameters to 0.
             post_body = None
             content_length = 0
         else:
@@ -177,30 +175,27 @@ class HTTPClient(object):
 
         url_port = parsed_url.port
         host = parsed_url.hostname
-        if url_port == None: # If no assigned port, assign 80 standard.
+        if url_port == None: # If no assigned port, assign 80 standard HTTP.
             url_port = 80 
 
         url_path = parsed_url.path
         if url_path == '':
-            url_path = '/'
+            url_path = url_path + '/'
 
         self.connect(host, url_port)
 
         if post_body == None:
-            send_payload = "POST "+str(url_path)+" HTTP/1.1\nHost:"+ str(host) + "\nContent-Length: "+str(content_length)+"\nConnection: Close\n\n" + str(post_body) + "\n"
+            send_payload = "POST "+str(url_path)+" HTTP/1.1"+RN+"Host:"+ str(host) +RN+ "Content-Length: "+str(content_length)+RN+"Connection: Close" +RN+RN+ str(post_body) + RN
         else:
-            send_payload = "POST "+str(url_path)+" HTTP/1.1\nHost:"+ str(host) + "\nContent-Length: "+str(content_length)+"\nContent-Type: "+"\nConnection: Close\n\n" + str(post_body) + "\n"
-        #print("SEND POST:\n", send_payload)
-        self.sendall(send_payload)
-        response = str(self.recvall(self.socket))
-        self.close()
-        #print("POST RESPONSE", response)
-        #print("trying to get body and code...")
-        post_body = self.get_body(response)
-        post_code = self.get_code(response)
-
+            send_payload = "POST "+str(url_path)+" HTTP/1.1"+RN+"Host:"+ str(host) +RN+ "Content-Length: "+str(content_length)+RN+"Content-Type: "+RN+"Connection: Close" +RN+RN+ str(post_body) + RN
         
-        return HTTPResponse(post_code, post_body)
+        self.sendall(send_payload) # Send the client request.
+        response = str(self.recvall(self.socket)) # Receive the response from the server.
+        self.close() # Close the connection.
+        response_body = self.get_body(response)
+        response_code = self.get_code(response)
+
+        return HTTPResponse(response_code, response_body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
