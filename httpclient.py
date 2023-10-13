@@ -47,17 +47,17 @@ class HTTPClient(object):
         data - composed of headers and body. body is separated from headers by
         two newline characters, as demonstrated by the professor in eClass discussion forums (and notes).
         https://eclass.srv.ualberta.ca/mod/forum/discuss.php?d=2340554
+
+        Code follows directly after HTTP/1.1 in the data.
         '''
-        #print("DATA IN CODE:", data)
-        split_data = data.split("\n\n")
-        #print("Data:", data)
+        split_data = data.split(RN+RN)
 
         headers_all = split_data[0]
 
-        headers_each = headers_all.split("\n")
-        status = headers_each[0]
-        #print("STATUS:", status)
-        status_code = int(status.split(" ")[1]) # split into ["HTTP/1.1", code #, response]
+        headers_each = headers_all.split(RN)
+        status = headers_each[0] # The code appears in the first line of the headers block.
+        status_code = status.split(" ") # split into ["HTTP/1.1", code #, response, so [1] is the code.
+        status_code = int(status_code[1]) 
 
 
         return status_code
@@ -94,7 +94,7 @@ class HTTPClient(object):
     
         split_data = data.split(RN+RN)
 
-        if len(split_data) > 1:
+        if len(split_data) > 1: # This indicates there is body in the data to be grabbed. If length is not mroe than 1, there is no body.
             return split_data[1]
         else:
             return None
@@ -124,10 +124,10 @@ class HTTPClient(object):
         '''
         Format of the payload that needs to be sent:
         METHOD path HTTP-version
-        Host
-        Accept?
-        Accept-language?
-        Connection
+        headers needed:
+        Host:
+        Accept:
+        Connection:
         '''
         
         parsed_url = urllib.parse.urlparse(url)
@@ -145,8 +145,7 @@ class HTTPClient(object):
         self.connect(host, url_port)
         # GET request will have no 'body'
         accept = 'text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8' # From mdn web docs
-        send_payload = "GET "+str(url_path)+" HTTP/1.1" +RN+ "User-Agent: "+RN+ "Host: "+ str(host) +RN+"Accept: " + accept +RN+ "Connection: Close"+RN+RN
-        
+        send_payload = "GET "+str(url_path)+" HTTP/1.1" +RN+ "Host: "+ str(host) +RN+"Accept: " + accept +RN+ "Connection: Close"+RN+RN
         self.sendall(send_payload) # Send client request.
         response = str(self.recvall(self.socket)) # Receive the response form the server.
         self.close() # Close the connection.
@@ -162,6 +161,12 @@ class HTTPClient(object):
         https://docs.python.org/3/library/urllib.parse.html#module-urllib.parse
         Example args printout: {'a': 'aaaaaaaaaaaaa', 'b': 'bbbbbbbbbbbbbbbbbbbbbb', 'c': 'c', 'd': '012345\r67890\n2321321\n\r'}
         -> since format of a dictionary, need to use urlencode!
+
+        According to tests:
+        headers needed:
+        Host:
+        Content-Length:
+        Content-Type:
         '''
 
         parsed_url = urllib.parse.urlparse(url)
