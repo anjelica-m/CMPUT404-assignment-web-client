@@ -18,6 +18,8 @@
 # Write your own HTTP GET and POST
 # The point is to understand what you have to send and get experience with it
 
+# GET and POST Written By: Anjelica Marianicz (ccid: anjelica)
+
 import sys
 import socket
 import re
