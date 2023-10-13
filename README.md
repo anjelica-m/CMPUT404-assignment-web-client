@@ -18,6 +18,8 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+Contributer on this fork (from Abram Hindle/ Hazel Campbell):
+Anjelica Marianicz
 
 References used:
 1) https://docs.python.org/3/library/socket.html
