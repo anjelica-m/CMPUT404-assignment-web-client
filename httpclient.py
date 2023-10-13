@@ -147,8 +147,8 @@ class HTTPClient(object):
         self.connect(host, url_port)
         # GET request will have no 'body'
         accept = 'text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8' # From mdn web docs
-        send_payload = "GET "+str(url_path)+" HTTP/1.1" +RN+ "Host: "+ str(host) +RN+"Accept: " + accept +RN+ "Connection: Close"+RN+RN
-        self.sendall(send_payload) # Send client request.
+        send_data = "GET "+str(url_path)+" HTTP/1.1" +RN+ "Host: "+ str(host) +RN+"Accept: " + accept +RN+ "Connection: Close"+RN+RN
+        self.sendall(send_data) # Send client request.
         response = str(self.recvall(self.socket)) # Receive the response form the server.
         self.close() # Close the connection.
 
@@ -192,11 +192,11 @@ class HTTPClient(object):
         self.connect(host, url_port)
 
         if post_body == None:
-            send_payload = "POST "+str(url_path)+" HTTP/1.1"+RN+"Host:"+ str(host) +RN+ "Content-Length: "+str(content_length)+RN+"Connection: Close" +RN+RN+ str(post_body) + RN
+            send_data = "POST "+str(url_path)+" HTTP/1.1"+RN+"Host:"+ str(host) +RN+ "Content-Length: "+str(content_length)+RN+"Connection: Close" +RN+RN+ str(post_body) + RN
         else:
-            send_payload = "POST "+str(url_path)+" HTTP/1.1"+RN+"Host:"+ str(host) +RN+ "Content-Length: "+str(content_length)+RN+"Content-Type: "+RN+"Connection: Close" +RN+RN+ str(post_body) + RN
+            send_data = "POST "+str(url_path)+" HTTP/1.1"+RN+"Host:"+ str(host) +RN+ "Content-Length: "+str(content_length)+RN+"Content-Type: "+RN+"Connection: Close" +RN+RN+ str(post_body) + RN
         
-        self.sendall(send_payload) # Send the client request.
+        self.sendall(send_data) # Send the client request.
         response = str(self.recvall(self.socket)) # Receive the response from the server.
         self.close() # Close the connection.
         response_body = self.get_body(response)
