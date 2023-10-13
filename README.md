@@ -20,7 +20,7 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 Contributer on this fork (forked from Abram Hindle/ Hazel Campbell):
 =============================================================
-Anjelica Marianicz
+- Anjelica Marianicz
 
 References used:
 ================
