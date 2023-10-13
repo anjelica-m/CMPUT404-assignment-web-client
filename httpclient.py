@@ -160,9 +160,44 @@ class HTTPClient(object):
         -> since format of a dictionary, need to use urlencode!
         '''
 
+
         #print("\n----POST Args----\n", args)
         #code = 500
         #body = ""
+
+        parsed_url = urllib.parse.urlparse(url)
+        #print("Parse URL:", parsed_url)
+        #print(parsed_url.port)
+        if args is None:
+            post_body = None
+            content_length = 0
+        else:
+            post_body = urllib.parse.urlencode(args)
+            content_length = len(post_body)
+
+        url_port = parsed_url.port
+        host = parsed_url.hostname
+        if url_port == None: # If no assigned port, assign 80 standard.
+            url_port = 80 
+
+        url_path = parsed_url.path
+        if url_path == '':
+            url_path = '/'
+
+        self.connect(host, url_port)
+
+        if post_body == None:
+            send_payload = "POST "+str(url_path)+" HTTP/1.1\nHost:"+ str(host) + "\nContent-Length: "+str(content_length)+"\nConnection: Close\n\n" + str(post_body) + "\n"
+        else:
+            send_payload = "POST "+str(url_path)+" HTTP/1.1\nHost:"+ str(host) + "\nContent-Length: "+str(content_length)+"\nContent-Type: "+"\nConnection: Close\n\n" + str(post_body) + "\n"
+        #print("SEND POST:\n", send_payload)
+        self.sendall(send_payload)
+        response = str(self.recvall(self.socket))
+        self.close()
+        #print("POST RESPONSE", response)
+        #print("trying to get body and code...")
+        post_body = self.get_body(response)
+        post_code = self.get_code(response)
 
         
         return HTTPResponse(post_code, post_body)
